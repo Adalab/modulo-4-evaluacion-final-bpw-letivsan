@@ -1,0 +1,37 @@
+{
+  "name": "servidor-league-of-legends",
+  "version": "0.0.1",
+  "description": "Express server for a League of Legends universe API",
+  "keywords": [
+    "express",
+    "mysql",
+    "cors",
+    "node",
+    "api",
+    "crud",
+    "leagueoflegends"
+  ],
+  "homepage": "https://github.com/Adalab/modulo-4-evaluacion-final-bpw-letivsan#readme",
+  "bugs": {
+    "url": "https://github.com/Adalab/modulo-4-evaluacion-final-bpw-letivsan/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Adalab/modulo-4-evaluacion-final-bpw-letivsan.git"
+  },
+  "license": "MIT",
+  "author": "Leticia Viéitez",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.22.5"
+  }
+}
