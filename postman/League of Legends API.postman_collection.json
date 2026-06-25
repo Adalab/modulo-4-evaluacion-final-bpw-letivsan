@@ -1,0 +1,305 @@
+{
+  "info": {
+    "_postman_id": "008f379d-905b-47b2-800e-681e9135b336",
+    "name": "League of Legends API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "56171206",
+    "_collection_link": "https://go.postman.co/collection/56171206-008f379d-905b-47b2-800e-681e9135b336?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "root",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "test DB",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{HOST}}/api/test-db",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "test-db"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "champions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{HOST}}/api/champions",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "champions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "champion by id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{HOST}}/api/champions/9",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "champions",
+            "9"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "champion error id",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{HOST}}/api/champions/saltamontes",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "champions",
+            "saltamontes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "create champion",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"riot_id\": \"Ezreal\",\r\n  \"riot_key\": 81,\r\n  \"name\": \"Ezreal\",\r\n  \"title\": \"the Prodigal Explorer\",\r\n  \"region_id\": 1,\r\n  \"resource\": \"Mana\",\r\n  \"attack\": 7,\r\n  \"defense\": 2,\r\n  \"magic\": 6,\r\n  \"difficulty\": 7,\r\n  \"lore_summary\": \"Ezreal is a daring adventurer who explores ancient ruins and uses a magical gauntlet.\",\r\n  \"image_url\": \"https://ddragon.leagueoflegends.com/cdn/16.13.1/img/champion/Ezreal.png\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{HOST}}/api/champions",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "champions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "update champion",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"riot_id\": \"Ezreal\",\r\n  \"riot_key\": 81,\r\n  \"name\": \"Ezreal\",\r\n  \"title\": \"the Prodigal Explorer\",\r\n  \"region_id\": 1,\r\n  \"resource\": \"Mana\",\r\n  \"attack\": 7,\r\n  \"defense\": 2,\r\n  \"magic\": 6,\r\n  \"difficulty\": 6,\r\n  \"lore_summary\": \"Ezreal is a daring adventurer who explores ancient ruins with a magical gauntlet.\",\r\n  \"image_url\": \"https://ddragon.leagueoflegends.com/cdn/16.13.1/img/champion/Ezreal.png\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{HOST}}/api/champions/9",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "champions",
+            "9"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "updated champion",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{HOST}}/api/champions/9",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "champions",
+            "9"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "delete champion",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{HOST}}/api/champions/9",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "champions",
+            "9"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "deleted champion",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{HOST}}/api/champions/9",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "champions",
+            "9"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "champion error id",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{HOST}}/api/champions/saltamontes",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "champions",
+            "saltamontes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "champion not found",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{HOST}}/api/champions/6464",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "champions",
+            "6464"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "HOST",
+      "value": ""
+    }
+  ]
+}
