@@ -68,14 +68,14 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{HOST}}/api/champions/9",
+          "raw": "{{HOST}}/api/champions/1",
           "host": [
             "{{HOST}}"
           ],
           "path": [
             "api",
             "champions",
-            "9"
+            "1"
           ]
         }
       },
@@ -104,16 +104,23 @@
       "response": []
     },
     {
-      "name": "create champion",
+      "name": "champions and create",
       "request": {
         "auth": {
-          "type": "noauth"
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
         },
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"riot_id\": \"Ezreal\",\r\n  \"riot_key\": 81,\r\n  \"name\": \"Ezreal\",\r\n  \"title\": \"the Prodigal Explorer\",\r\n  \"region_id\": 1,\r\n  \"resource\": \"Mana\",\r\n  \"attack\": 7,\r\n  \"defense\": 2,\r\n  \"magic\": 6,\r\n  \"difficulty\": 7,\r\n  \"lore_summary\": \"Ezreal is a daring adventurer who explores ancient ruins and uses a magical gauntlet.\",\r\n  \"image_url\": \"https://ddragon.leagueoflegends.com/cdn/16.13.1/img/champion/Ezreal.png\"\r\n}",
+          "raw": "{\r\n  \"riot_id\": \"testauthchampion2\",\r\n  \"riot_key\": \"99902\",\r\n  \"name\": \"Test Auth Champion 2\",\r\n  \"title\": \"the Protected One\",\r\n  \"region_id\": 1,\r\n  \"resource\": \"Mana\",\r\n  \"attack\": 5,\r\n  \"defense\": 5,\r\n  \"magic\": 5,\r\n  \"difficulty\": 5,\r\n  \"lore_summary\": \"Champion created to test JWT authentication.\",\r\n  \"image_url\": \"https://example.com/test-auth-champion-2.png\"\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -270,6 +277,73 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "auth registrer user",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"nombre\": \"Olar\",\r\n  \"user\": \"olar@correo.com\",\r\n  \"pass\": \"patatasfritas1234\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{HOST}}/api/registro",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "registro"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "auth login user",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"user\": \"olar@correo.com\",\r\n  \"pass\": \"patatasfritaspochas\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{HOST}}/api/login",
+          "host": [
+            "{{HOST}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "event": [
@@ -299,6 +373,10 @@
   "variable": [
     {
       "key": "HOST",
+      "value": ""
+    },
+    {
+      "key": "TOKEN",
       "value": ""
     }
   ]

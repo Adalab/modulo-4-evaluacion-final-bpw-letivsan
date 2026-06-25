@@ -2,6 +2,8 @@
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise'); // Importar la biblioteca de MySQL
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 require('dotenv').config(); // Importamos la biblioteca de variables de entorno
 
 // ========================================
@@ -39,6 +41,23 @@ server.listen(port, () => {
 
 // ========================================
 // CONFIGURACIÓN AUTENTICACIÓN
+const saltRounds = Number(process.env.SALT_ROUNDS) || 10; // asegurarnos de que recibe un número
+const passwordJWT = process.env.PASSWORD_JWT;
+
+const generateToken = (user) => {
+  const token = jwt.sign(
+    {
+      sub: user.id,
+      nombre: user.nombre,
+      email: user.email,
+      rol: 'admin',
+    },
+    passwordJWT,
+    { expiresIn: '30m' },
+  );
+
+  return token;
+};
 
 // ========================================
 // ENDPOINTS
@@ -68,6 +87,159 @@ server.get('/api/test-db', async (req, res) => {
     }
   }
 });
+
+// ----------------------------------------
+// ENDPOINT DE REGISTRO
+
+server.post('/api/registro', async (req, res) => {
+  let connection;
+
+  try {
+    const { nombre, user, pass } = req.body;
+
+    if (!nombre || !user || !pass) {
+      return res.status(400).json({
+        success: false,
+        error: 'Faltan datos para el registro.',
+      });
+    }
+
+    const encryptedPassword = await bcrypt.hash(pass, saltRounds);
+
+    connection = await getConnection();
+
+    const insertUser = `
+      INSERT INTO usuarios_db (nombre, email, password)
+      VALUES (?, ?, ?);
+    `;
+
+    const [result] = await connection.execute(insertUser, [
+      nombre,
+      user,
+      encryptedPassword,
+    ]);
+
+    if (result.affectedRows === 1) {
+      const token = generateToken({
+        id: result.insertId,
+        nombre: nombre,
+        email: user,
+      });
+
+      res.json({
+        success: true,
+        token: token,
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: 'No se ha podido registrar la usuaria.',
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: error.message,
+    });
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+});
+
+// ----------------------------------------
+// ENDPOINT DE LOGIN
+
+server.post('/api/login', async (req, res) => {
+  let connection;
+
+  try {
+    const { user, pass } = req.body;
+
+    if (!user || !pass) {
+      return res.status(400).json({
+        success: false,
+        error: 'Faltan datos para el login.',
+      });
+    }
+
+    connection = await getConnection();
+
+    const selectUser = `
+      SELECT id, nombre, email, password
+      FROM usuarios_db
+      WHERE email = ?;
+    `;
+
+    const [users] = await connection.execute(selectUser, [user]);
+
+    if (users.length === 0) {
+      return res.status(401).json({
+        success: false,
+        error: 'Credenciales no válidas.',
+      });
+    }
+
+    const userFound = users[0];
+
+    const isValidPassword = await bcrypt.compare(pass, userFound.password);
+
+    if (!isValidPassword) {
+      return res.status(401).json({
+        success: false,
+        error: 'Credenciales no válidas.',
+      });
+    }
+
+    const token = generateToken(userFound);
+
+    res.json({
+      success: true,
+      token: token,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+});
+
+// ========================================
+// COMPROBAR TOKEN JWT
+
+const checkToken = (req, res, next) => {
+  const authHeader = req.get('Authorization');
+
+  if (!authHeader) {
+    return res.status(401).json({
+      success: false,
+      error: 'Falta el token.',
+    });
+  }
+
+  const token = authHeader.startsWith('Bearer ')
+    ? authHeader.replace('Bearer ', '')
+    : authHeader;
+
+  try {
+    const decodedToken = jwt.verify(token, passwordJWT);
+
+    req.user = decodedToken;
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      error: 'Token no válido.',
+    });
+  }
+};
 
 // GET /api/champions
 server.get('/api/champions', async (req, res) => {
@@ -152,7 +324,7 @@ server.get('/api/champions/:id', async (req, res) => {
 });
 
 // POST /api/champions
-server.post('/api/champions', async (req, res) => {
+server.post('/api/champions', checkToken, async (req, res) => {
   if (
     !req.body.riot_id ||
     req.body.riot_key === undefined ||
@@ -251,7 +423,7 @@ server.post('/api/champions', async (req, res) => {
 });
 
 // PUT /api/champions/:id
-server.put('/api/champions/:id', async (req, res) => {
+server.put('/api/champions/:id', checkToken, async (req, res) => {
   if (isNaN(parseInt(req.params.id))) {
     return res.status(400).json({
       success: false,
@@ -360,7 +532,7 @@ server.put('/api/champions/:id', async (req, res) => {
 });
 
 // DELETE /api/champions/:id
-server.delete('/api/champions/:id', async (req, res) => {
+server.delete('/api/champions/:id', checkToken, async (req, res) => {
   const championId = parseInt(req.params.id);
 
   if (isNaN(championId)) {
