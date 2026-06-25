@@ -49,13 +49,13 @@ Elegí el universo de League of Legends porque permite trabajar con una temátic
 Clonar el repositorio:
 
 ```bash
-git clone <https://github.com/Adalab/modulo-4-evaluacion-final-bpw-letivsan.git>
+git clone https://github.com/Adalab/modulo-4-evaluacion-final-bpw-letivsan.git
 ```
 
 Entrar en la carpeta del proyecto:
 
 ```bash
-cd MODULO-4-EVALUACION-FINAL-BPW-LETIVSAN
+cd modulo-4-evaluacion-final-bpw-letivsan
 ```
 
 Instalar las dependencias:
