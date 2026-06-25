@@ -7,8 +7,8 @@ require('dotenv').config(); // Importamos la biblioteca de variables de entorno
 // ========================================
 // CONFIGURACIÓN BASE DE DATOS
 
-const getConexion = async () => {
-  const datosConexion = {
+const getConnection = async () => {
+  const connectionData = {
     host: process.env.MYSQL_HOST || 'localhost',
     port: process.env.MYSQL_PORT || 3306,
     user: process.env.MYSQL_USER || 'root',
@@ -16,9 +16,9 @@ const getConexion = async () => {
     database: process.env.MYSQL_SCHEMA || 'leagueoflegends',
   };
 
-  const conexion = await mysql.createConnection(datosConexion); // Crear la cajita de la conexión en el Workbench
-  await conexion.connect(); // Hacer click en la cajita de la conex del Workbench
-  return conexion;
+  const connection = await mysql.createConnection(connectionData);
+  await connection.connect();
+  return connection;
 };
 
 // ========================================
@@ -48,10 +48,10 @@ server.get('/', (req, res) => {
 
 // Endpoint temporal solo para probar la conexión con MySQL
 server.get('/api/test-db', async (req, res) => {
-  let conexion;
+  let connection;
 
   try {
-    conexion = await getConexion();
+    connection = await getConnection();
 
     res.json({
       success: true,
@@ -63,19 +63,19 @@ server.get('/api/test-db', async (req, res) => {
       error: error.message,
     });
   } finally {
-    if (conexion) {
-      await conexion.end();
+    if (connection) {
+      await connection.end();
     }
   }
 });
 
 // GET /api/champions
 server.get('/api/champions', async (req, res) => {
-  let conexion;
+  let connection;
 
   try {
     // 1. Nos conectamos con la bbdd
-    conexion = await getConexion();
+    connection = await getConnection();
 
     // 2. Preparamos una query = SELECT
     const queryListarChampions = `
@@ -85,7 +85,7 @@ server.get('/api/champions', async (req, res) => {
     `;
 
     // 3. Lanzamos la query y nos quedamos con los resultados
-    const [resultados] = await conexion.query(queryListarChampions);
+    const [resultados] = await connection.query(queryListarChampions);
 
     // 4. Respondemos con los datos
     res.json(resultados);
@@ -96,8 +96,8 @@ server.get('/api/champions', async (req, res) => {
     });
   } finally {
     // 5. Cerramos la conexión
-    if (conexion) {
-      await conexion.end();
+    if (connection) {
+      await connection.end();
     }
   }
 });
@@ -111,11 +111,11 @@ server.get('/api/champions/:id', async (req, res) => {
     });
   }
 
-  let conexion;
+  let connection;
 
   try {
     // 1. Nos conectamos con la bbdd
-    conexion = await getConexion();
+    connection = await getConnection();
 
     // 2. Preparamos una query = SELECT
     const queryObtenerChampion = `
@@ -125,12 +125,19 @@ server.get('/api/champions/:id', async (req, res) => {
     `;
 
     // 3. Lanzamos la query y nos quedamos con los resultados
-    const [resultados] = await conexion.query(queryObtenerChampion, [
+    const [resultados] = await connection.query(queryObtenerChampion, [
       req.params.id,
     ]);
 
     // 4. Respondemos con los datos
-    res.json(resultados);
+    if (resultados.length === 1) {
+      res.json(resultados[0]);
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'No existe ningún campeón con ese id.',
+      });
+    }
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -138,16 +145,14 @@ server.get('/api/champions/:id', async (req, res) => {
     });
   } finally {
     // 5. Cerramos la conexión
-    if (conexion) {
-      await conexion.end();
+    if (connection) {
+      await connection.end();
     }
   }
 });
 
 // POST /api/champions
 server.post('/api/champions', async (req, res) => {
-  console.log(req.body);
-
   if (
     !req.body.riot_id ||
     req.body.riot_key === undefined ||
@@ -160,11 +165,11 @@ server.post('/api/champions', async (req, res) => {
     });
   }
 
-  let conexion;
+  let connection;
 
   try {
     // 1. Nos conectamos con la bbdd
-    conexion = await getConexion();
+    connection = await getConnection();
 
     // 2. Preparamos una sentencia = INSERT
     const sentenciaInsertChampion = `
@@ -188,20 +193,23 @@ server.post('/api/champions', async (req, res) => {
     `;
 
     // 3. Lanzamos la sentencia y nos quedamos con los resultados
-    const [resultadoInsert] = await conexion.execute(sentenciaInsertChampion, [
-      req.body.riot_id,
-      req.body.riot_key,
-      req.body.name,
-      req.body.title,
-      req.body.region_id ?? null,
-      req.body.resource ?? null,
-      req.body.attack ?? null,
-      req.body.defense ?? null,
-      req.body.magic ?? null,
-      req.body.difficulty ?? null,
-      req.body.lore_summary ?? null,
-      req.body.image_url ?? null,
-    ]);
+    const [resultadoInsert] = await connection.execute(
+      sentenciaInsertChampion,
+      [
+        req.body.riot_id,
+        req.body.riot_key,
+        req.body.name,
+        req.body.title,
+        req.body.region_id ?? null,
+        req.body.resource ?? null,
+        req.body.attack ?? null,
+        req.body.defense ?? null,
+        req.body.magic ?? null,
+        req.body.difficulty ?? null,
+        req.body.lore_summary ?? null,
+        req.body.image_url ?? null,
+      ],
+    );
 
     // 4. Respondemos con los datos
     if (resultadoInsert.affectedRows === 1) {
@@ -216,14 +224,28 @@ server.post('/api/champions', async (req, res) => {
       res.json({ success: false });
     }
   } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({
+        success: false,
+        error: 'Ya existe un campeón con ese riot_id, riot_key o name.',
+      });
+    }
+
+    if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(400).json({
+        success: false,
+        error: 'La región indicada no existe.',
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: error.message,
     });
   } finally {
     // 5. Cerramos la conexión
-    if (conexion) {
-      await conexion.end();
+    if (connection) {
+      await connection.end();
     }
   }
 });
@@ -249,11 +271,11 @@ server.put('/api/champions/:id', async (req, res) => {
     });
   }
 
-  let conexion;
+  let connection;
 
   try {
     // 1. Nos conectamos con la bbdd
-    conexion = await getConexion();
+    connection = await getConnection();
 
     // 2. Preparamos una sentencia = UPDATE
     const sentenciaUpdateChampion = `
@@ -276,21 +298,24 @@ server.put('/api/champions/:id', async (req, res) => {
     `;
 
     // 3. Lanzamos la sentencia y nos quedamos con los resultados
-    const [resultadoUpdate] = await conexion.execute(sentenciaUpdateChampion, [
-      req.body.riot_id,
-      req.body.riot_key,
-      req.body.name,
-      req.body.title,
-      req.body.region_id ?? null,
-      req.body.resource ?? null,
-      req.body.attack ?? null,
-      req.body.defense ?? null,
-      req.body.magic ?? null,
-      req.body.difficulty ?? null,
-      req.body.lore_summary ?? null,
-      req.body.image_url ?? null,
-      req.params.id,
-    ]);
+    const [resultadoUpdate] = await connection.execute(
+      sentenciaUpdateChampion,
+      [
+        req.body.riot_id,
+        req.body.riot_key,
+        req.body.name,
+        req.body.title,
+        req.body.region_id ?? null,
+        req.body.resource ?? null,
+        req.body.attack ?? null,
+        req.body.defense ?? null,
+        req.body.magic ?? null,
+        req.body.difficulty ?? null,
+        req.body.lore_summary ?? null,
+        req.body.image_url ?? null,
+        req.params.id,
+      ],
+    );
 
     // 4. Respondemos con los datos
     if (resultadoUpdate.affectedRows === 1) {
@@ -328,55 +353,67 @@ server.put('/api/champions/:id', async (req, res) => {
     });
   } finally {
     // 5. Cerramos la conexión
-    if (conexion) {
-      await conexion.end();
+    if (connection) {
+      await connection.end();
     }
   }
 });
 
-// // DELETE /api/magas/:id
-// server.delete('/api/magas/:id', async (req, res) => {
-//   if (isNaN(parseInt(req.params.id))) {
-//     return res.status(400).json({
-//       sucess: false,
-//       error: 'El id no es un número (probablemente sea una obj).',
-//     });
-//   }
+// DELETE /api/champions/:id
+server.delete('/api/champions/:id', async (req, res) => {
+  const championId = parseInt(req.params.id);
 
-//   let conexion;
-//   try {
-//     // 1. Nos conectamos con la bbdd
-//     conexion = await getConexion();
+  if (isNaN(championId)) {
+    return res.status(400).json({
+      success: false,
+      error: 'El id debe ser un número.',
+    });
+  }
 
-//     // 2. Preparamos una sentencia = UPDATE
-//     const sentenciaDeleteMaga = `
-//       DELETE FROM magas
-//         WHERE id=?;
-//       `;
+  let connection;
 
-//     // 3. Lanzamos la sentencia y nos quedamos con los resultados
-//     const [resultadoDelete] = await conexion.execute(sentenciaDeleteMaga, [
-//       req.params.id,
-//     ]);
-//     console.log(resultadoDelete);
+  try {
+    connection = await getConnection();
 
-//     // 5. Responder con los datos
-//     if (resultadoDelete.affectedRows === 1) {
-//       res.json({
-//         success: true,
-//       });
-//     } else {
-//       res.json({ success: false });
-//     }
-//   } catch (error) {
-//     res.status(500).json({ success: false, error: error });
-//   } finally {
-//     // 4. Cerramos la conexión.
-//     if (conexion) {
-//       await conexion.end();
-//     }
-//   }
-// });
+    const queryDeleteChampion = `
+    DELETE FROM champions
+    WHERE id = ?;
+    `;
+
+    const [resultDelete] = await connection.execute(queryDeleteChampion, [
+      championId,
+    ]);
+
+    if (resultDelete.affectedRows === 1) {
+      res.json({
+        success: true,
+        message: 'Campeón eliminado satisfactoriamente.',
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'No se encuentra el campeón.',
+      });
+    }
+  } catch (error) {
+    if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+      return res.status(400).json({
+        success: false,
+        error:
+          'No se puede eliminar este campeón porque tiene datos relacionados.',
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  } finally {
+    if (connection) {
+      await connection.end();
+    }
+  }
+});
 
 // // Páginas dinámicas
 // // Ficheros estáticos
